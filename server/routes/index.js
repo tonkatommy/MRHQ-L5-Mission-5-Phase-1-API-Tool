@@ -6,7 +6,7 @@ import documentsRoutes from "./documents.js";
 
 const router = Router();
 
-// Mount all route modules
+// Mount all route modules on their respective paths
 router.use("/health", healthRoutes);
 router.use("/collections", collectionsRoutes);
 router.use("/search", searchRoutes);
