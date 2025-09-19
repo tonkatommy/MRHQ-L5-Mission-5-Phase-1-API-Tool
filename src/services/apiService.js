@@ -1,3 +1,5 @@
+import logger from "../../../mongo-cli-tool/src/utils/logger.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 // Basic keyword search function
@@ -11,6 +13,8 @@ export const searchItems = async (collection, searchTerm) => {
       ],
     };
 
+    logger.info(`🔍 Sending search request with query: ${JSON.stringify(query)}`);
+
     const response = await fetch(`${API_BASE_URL}/search`, {
       method: "POST",
       headers: {
@@ -18,7 +22,7 @@ export const searchItems = async (collection, searchTerm) => {
       },
       body: JSON.stringify({
         collection,
-        query,
+        query, // Send as object, not string
       }),
     });
 
@@ -37,14 +41,14 @@ export const searchItems = async (collection, searchTerm) => {
 // AI-enhanced search function
 export const aiEnhancedSearch = async (collection, naturalLanguageQuery) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/ai-search`, {
+    const response = await fetch(`${API_BASE_URL}/search/ai`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         collection,
-        query: naturalLanguageQuery,
+        query: naturalLanguageQuery, // Send as string for AI processing
       }),
     });
 

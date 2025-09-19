@@ -39,8 +39,38 @@ router.post("/", async (req, res) => {
     const Model = database.getModel(collection);
     logger.info(`🏗️ Using model for collection: ${collection}`);
 
+    // Validate and process the query parameter
+    let mongoQuery = {};
+
+    if (query) {
+      // If query is a string, treat it as a text search
+      if (typeof query === "string") {
+        logger.info(`🔄 Converting string query to MongoDB search: "${query}"`);
+        mongoQuery = {
+          $or: [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+          ],
+        };
+      }
+      // If query is an object, use it directly (but validate it)
+      else if (typeof query === "object" && query !== null) {
+        mongoQuery = query;
+      }
+      // Invalid query type
+      else {
+        logger.error(`⚠️ Invalid query type: ${typeof query}`);
+        return res.status(400).json({
+          error: "Query must be an object or string",
+          received: typeof query,
+        });
+      }
+    }
+
+    logger.info(`🔍 Final query: ${JSON.stringify(mongoQuery)}`);
+
     // Execute the search query with limit for performance
-    const results = await Model.find(query || {}).limit(parseInt(limit));
+    const results = await Model.find(mongoQuery).limit(parseInt(limit));
 
     logger.success(`📊 Found ${results.length} documents`);
 
@@ -53,7 +83,7 @@ router.post("/", async (req, res) => {
       results,
       count: results.length,
       collection,
-      query: query || {},
+      query: mongoQuery,
     });
   } catch (error) {
     logger.error("💥 Search endpoint error: " + error.message);
